@@ -13,4 +13,4 @@ add_executable(BS_Praktikum_22
         .idea/modules.xml
         .idea/vcs.xml
         .idea/workspace.xml
-        main.c)
+        main.c keyValStore.c keyValStore.h sub.c sub.h main.h)
