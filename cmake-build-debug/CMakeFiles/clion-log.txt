@@ -1,0 +1,18 @@
+"C:\Program Files\JetBrains\CLion 2021.3.4\bin\cmake\win\bin\cmake.exe" -DCMAKE_BUILD_TYPE=Debug "-DCMAKE_MAKE_PROGRAM=C:/Program Files/JetBrains/CLion 2021.3.4/bin/ninja/win/ninja.exe" -G Ninja C:\Users\wall\sciebo\SS22\BS\Praktikum\BS-Praktikum-22
+-- Configuring done
+CMake Error: CMake can not determine linker language for target: BS_Praktikum_22
+-- Generating done
+CMake Error:
+  Running
+
+   'C:/Program Files/JetBrains/CLion 2021.3.4/bin/ninja/win/ninja.exe' '-C' 'C:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/cmake-build-debug' '-t' 'recompact'
+
+  failed with:
+
+   ninja: warning: bad deps log signature or version; starting over
+
+  ninja: error: failed recompaction: No such file or directory
+
+
+
+CMake Generate step failed.  Build files cannot be regenerated correctly.

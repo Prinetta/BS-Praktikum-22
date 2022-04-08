@@ -1,0 +1,3 @@
+C:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/cmake-build-debug/CMakeFiles/BS_Praktikum_22.dir
+C:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/cmake-build-debug/CMakeFiles/rebuild_cache.dir
