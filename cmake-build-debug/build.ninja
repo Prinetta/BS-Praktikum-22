@@ -58,6 +58,24 @@ build CMakeFiles/BS_Praktikum_22.dir/main.c.obj: C_COMPILER__BS_Praktikum_22_Deb
   TARGET_COMPILE_PDB = CMakeFiles\BS_Praktikum_22.dir\
   TARGET_PDB = BS_Praktikum_22.pdb
 
+build CMakeFiles/BS_Praktikum_22.dir/keyValStore.c.obj: C_COMPILER__BS_Praktikum_22_Debug C$:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/keyValStore.c || cmake_object_order_depends_target_BS_Praktikum_22
+  DEP_FILE = CMakeFiles\BS_Praktikum_22.dir\keyValStore.c.obj.d
+  FLAGS = -g
+  INCLUDES = -IC:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/. -IC:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/.idea
+  OBJECT_DIR = CMakeFiles\BS_Praktikum_22.dir
+  OBJECT_FILE_DIR = CMakeFiles\BS_Praktikum_22.dir
+  TARGET_COMPILE_PDB = CMakeFiles\BS_Praktikum_22.dir\
+  TARGET_PDB = BS_Praktikum_22.pdb
+
+build CMakeFiles/BS_Praktikum_22.dir/sub.c.obj: C_COMPILER__BS_Praktikum_22_Debug C$:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/sub.c || cmake_object_order_depends_target_BS_Praktikum_22
+  DEP_FILE = CMakeFiles\BS_Praktikum_22.dir\sub.c.obj.d
+  FLAGS = -g
+  INCLUDES = -IC:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/. -IC:/Users/wall/sciebo/SS22/BS/Praktikum/BS-Praktikum-22/.idea
+  OBJECT_DIR = CMakeFiles\BS_Praktikum_22.dir
+  OBJECT_FILE_DIR = CMakeFiles\BS_Praktikum_22.dir
+  TARGET_COMPILE_PDB = CMakeFiles\BS_Praktikum_22.dir\
+  TARGET_PDB = BS_Praktikum_22.pdb
+
 
 # =============================================================================
 # Link build statements for EXECUTABLE target BS_Praktikum_22
@@ -66,7 +84,7 @@ build CMakeFiles/BS_Praktikum_22.dir/main.c.obj: C_COMPILER__BS_Praktikum_22_Deb
 #############################################
 # Link the executable BS_Praktikum_22.exe
 
-build BS_Praktikum_22.exe: C_EXECUTABLE_LINKER__BS_Praktikum_22_Debug CMakeFiles/BS_Praktikum_22.dir/main.c.obj
+build BS_Praktikum_22.exe: C_EXECUTABLE_LINKER__BS_Praktikum_22_Debug CMakeFiles/BS_Praktikum_22.dir/main.c.obj CMakeFiles/BS_Praktikum_22.dir/keyValStore.c.obj CMakeFiles/BS_Praktikum_22.dir/sub.c.obj
   FLAGS = -g
   LINK_LIBRARIES = -lkernel32 -luser32 -lgdi32 -lwinspool -lshell32 -lole32 -loleaut32 -luuid -lcomdlg32 -ladvapi32
   OBJECT_DIR = CMakeFiles\BS_Praktikum_22.dir
