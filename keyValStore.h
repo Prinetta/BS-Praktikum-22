@@ -4,5 +4,6 @@
 
 #ifndef BS_PRAKTIKUM_22_KEYVALSTORE_H
 #define BS_PRAKTIKUM_22_KEYVALSTORE_H
-
+int get(char * key, char * res);
+int put(char * key, char * value);
 #endif //BS_PRAKTIKUM_22_KEYVALSTORE_H
