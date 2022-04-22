@@ -2,9 +2,13 @@
 #include <stdio.h>
 #include "keyValStore.h"
 
-int main(){
-    printf("Hello World!\n");
-    printf( "%d", put("key", "value"));
-    printf( "%d", get("key", "value"));
+int main() {
+    put("key", "value");
+    char value[10] = "";
+    get("key", value);
+    //printf("%s", value);
+    del("key");
+    get("key", value);
+    printf("%s", value);
     return 0;
 }
