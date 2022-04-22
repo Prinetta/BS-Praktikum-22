@@ -58,7 +58,7 @@ int get(char * key, char * res){
         strcpy(res, dataArray[index]->value);
         return 0;
     }
-    res = NULL;
+    strcpy(res, "");
     return -1;
 }
 
