@@ -18,7 +18,7 @@
 #define PORT 5678
 
 
-int startServer() {
+_Noreturn int startServer() {
 
     int rfd; // Rendevouz-Descriptor
     int cfd; // Verbindungs-Descriptor

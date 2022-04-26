@@ -1,5 +1,5 @@
 # ninja log v5
-4	70	6711183367821490	CMakeFiles/BS_Praktikum_22.dir/keyValStore.c.obj	754a10c744caaaec
+1	3904	6723503136153081	CMakeFiles/BS_Praktikum_22.dir/keyValStore.c.obj	754a10c744caaaec
 7	71	6711183367814016	CMakeFiles/BS_Praktikum_22.dir/sub.c.obj	e33f1f8d76efcfcd
-0	87	6711183368019558	CMakeFiles/BS_Praktikum_22.dir/main.c.obj	b2bcf052e28a54bd
-87	198	6711183369075876	BS_Praktikum_22.exe	7beee79e45d72cb6
+4	3882	6723538533831046	CMakeFiles/BS_Praktikum_22.dir/main.c.obj	b2bcf052e28a54bd
+3883	4031	6723538535264627	BS_Praktikum_22.exe	7beee79e45d72cb6

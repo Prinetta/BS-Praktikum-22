@@ -1,14 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" remoteFilesAllowedToDisappearOnAutoupload="false">
+  <component name="PublishConfigData" autoUpload="On explicit save action" serverName="PrakBS22 (f6acaccb-1da0-4888-b7a0-02fb7aa62d2d)" autoUploadExternalChanges="true">
     <serverData>
       <paths name="PrakBS22 (f6acaccb-1da0-4888-b7a0-02fb7aa62d2d)">
         <serverdata>
           <mappings>
-            <mapping local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/tmp/BS_Praktikum_22" local="$PROJECT_DIR$" web="/" />
           </mappings>
+          <excludedPaths>
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-prakbs22" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug-prakbs22" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-release-prakbs22" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-prakbs22" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-default" />
+            <excludedPath local="true" path="$PROJECT_DIR$/cmake-build-debug" />
+          </excludedPaths>
         </serverdata>
       </paths>
     </serverData>
+    <option name="myAutoUpload" value="ON_EXPLICIT_SAVE" />
   </component>
 </project>

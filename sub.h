@@ -4,5 +4,6 @@
 
 #ifndef BS_PRAKTIKUM_22_SUB_H
 #define BS_PRAKTIKUM_22_SUB_H
-int startServer();
+
+_Noreturn int startServer();
 #endif //BS_PRAKTIKUM_22_SUB_H
