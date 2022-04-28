@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <string.h>
 
 #define BUFSIZE 1024 // Größe des Buffers
 #define TRUE 1
@@ -18,10 +19,10 @@
 #define PORT 5678
 
 
-_Noreturn int startServer() {
+int startServer() {
 
-    int rfd; // Rendevouz-Descriptor
-    int cfd; // Verbindungs-Descriptor
+    int rfd; // Rendevouz-Descriptor (rendevouz protocol enables p2p networks to find each other), file descriptor for new socket
+    int cfd; // Verbindungs-Descriptor (descriptor/"name" for client's socket)
 
     struct sockaddr_in client; // Socketadresse eines Clients
     socklen_t client_len; // Länge der Client-Daten
@@ -64,6 +65,7 @@ _Noreturn int startServer() {
     while (ENDLOSSCHLEIFE) {
 
         // Verbindung eines Clients wird entgegengenommen
+        // (awaits connection to rfd, opens new socket to communicate with it and saves client address)
         cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
 
         // Lesen von Daten, die der Client schickt
@@ -71,16 +73,18 @@ _Noreturn int startServer() {
 
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         while (bytes_read > 0) {
-            printf("sending back the %d bytes I received...\n", bytes_read);
+            // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
+            if (strstr(in, "QUIT\0")) {
+                close(cfd);
+                close(rfd);
+                return 0;
+            }
 
+            printf("sending back the %d bytes I received...\n", bytes_read);
             write(cfd, in, bytes_read);
             bytes_read = read(cfd, in, BUFSIZE);
-
         }
-        close(cfd);
-    }
 
-    // Rendevouz Descriptor schließen
-    close(rfd);
+    }
 
 }

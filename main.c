@@ -5,12 +5,12 @@
 
 int main() {
     startServer();
-    put("key", "value");
+    /*put("key", "value");
     char value[10] = "";
     get("key", value);
     //printf("%s", value);
     del("key");
     get("key", value);
-    printf("%s", value);
+    printf("%s", value);*/
     return 0;
 }
