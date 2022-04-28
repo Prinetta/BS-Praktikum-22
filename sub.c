@@ -45,9 +45,9 @@ int startServer() {
 
     // Socket binden
     struct sockaddr_in server;
-    server.sin_family = AF_INET;
-    server.sin_addr.s_addr = INADDR_ANY;
-    server.sin_port = htons(PORT);
+    server.sin_family = AF_INET; // type of address family that the socket can communicate with (in this case, Internet Protocol v4 addresses)
+    server.sin_addr.s_addr = INADDR_ANY; // ip address that is used when we don't want to bind a socket to any specific IP
+    server.sin_port = htons(PORT); // htons function can be used to convert an IP port number in host byte order to the IP port number in network byte order
     int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
     if (brt < 0 ){
         fprintf(stderr, "socket konnte nicht gebunden werden\n");
@@ -55,7 +55,7 @@ int startServer() {
     }
 
 
-    // Socket lauschen lassen
+    // Socket hört zu
     int lrt = listen(rfd, 5);
     if (lrt < 0 ){
         fprintf(stderr, "socket konnte nicht listen gesetzt werden\n");
