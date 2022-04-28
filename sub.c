@@ -13,26 +13,24 @@
 #include <netinet/in.h>
 #include <string.h>
 
-#define BUFSIZE 1024 // Größe des Buffers
-#define TRUE 1
-#define ENDLOSSCHLEIFE 1
+#define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
-
 
 int startServer() {
 
-    int rfd; // Rendevouz-Descriptor (rendevouz protocol enables p2p networks to find each other), file descriptor for new socket
-    int cfd; // Verbindungs-Descriptor (descriptor/"name" for client's socket)
+    int rendevouzFileDesc; // Rendevouz-Descriptor (server socket)
+    int connectionFileDesc; // Verbindungs-Descriptor (client socket)
 
-    struct sockaddr_in client; // Socketadresse eines Clients
-    socklen_t client_len; // Länge der Client-Daten
-    char in[BUFSIZE]; // Daten vom Client an den Server
-    int bytes_read; // Anzahl der Bytes, die der Client geschickt hat
+    struct sockaddr_in client; // Client-Socketadresse
+    socklen_t clientLength; // Länge der Client-Daten
+    char input[BUFFERSIZE]; // Daten vom Client an den Server
+    int bytesRead; // Anzahl der Bytes, die der Client geschickt hat
 
 
-    // Socket erstellen
-    rfd = socket(AF_INET, SOCK_STREAM, 0);
-    if (rfd < 0 ){
+    // Socket erstellen (AF_INET = address family: internet, domain and type describe the protocol,
+    // 0 causes default protocol for domain and type to be selected)
+    rendevouzFileDesc = socket(AF_INET, SOCK_STREAM, 0);
+    if (rendevouzFileDesc < 0){
         fprintf(stderr, "socket konnte nicht erstellt werden\n");
         exit(-1);
     }
@@ -40,7 +38,7 @@ int startServer() {
 
     // Socket Optionen setzen für schnelles wiederholtes Binden der Adresse
     int option = 1;
-    setsockopt(rfd, SOL_SOCKET, SO_REUSEADDR, (const void *) &option, sizeof(int));
+    setsockopt(rendevouzFileDesc, SOL_SOCKET, SO_REUSEADDR, (const void *) &option, sizeof(int));
 
 
     // Socket binden
@@ -48,41 +46,39 @@ int startServer() {
     server.sin_family = AF_INET; // type of address family that the socket can communicate with (in this case, Internet Protocol v4 addresses)
     server.sin_addr.s_addr = INADDR_ANY; // ip address that is used when we don't want to bind a socket to any specific IP
     server.sin_port = htons(PORT); // htons function can be used to convert an IP port number in host byte order to the IP port number in network byte order
-    int brt = bind(rfd, (struct sockaddr *) &server, sizeof(server));
-    if (brt < 0 ){
+    int couldBindServerAddress = bind(rendevouzFileDesc, (struct sockaddr *) &server, sizeof(server));
+    if (couldBindServerAddress < 0){
         fprintf(stderr, "socket konnte nicht gebunden werden\n");
         exit(-1);
     }
 
-
-    // Socket hört zu
-    int lrt = listen(rfd, 5);
-    if (lrt < 0 ){
+    // Server hört zu
+    int couldSetServerToListen = listen(rendevouzFileDesc, 5);
+    if (couldSetServerToListen < 0 ){
         fprintf(stderr, "socket konnte nicht listen gesetzt werden\n");
         exit(-1);
     }
 
-    while (ENDLOSSCHLEIFE) {
-
+    while (1) {
         // Verbindung eines Clients wird entgegengenommen
-        // (awaits connection to rfd, opens new socket to communicate with it and saves client address)
-        cfd = accept(rfd, (struct sockaddr *) &client, &client_len);
+        // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
+        connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
 
         // Lesen von Daten, die der Client schickt
-        bytes_read = read(cfd, in, BUFSIZE);
+        bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
 
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
-        while (bytes_read > 0) {
+        while (bytesRead > 0) {
             // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
-            if (strstr(in, "QUIT\0")) {
-                close(cfd);
-                close(rfd);
+            if (strstr(input, "QUIT\0")) {
+                close(connectionFileDesc);
+                close(rendevouzFileDesc);
                 return 0;
             }
 
-            printf("sending back the %d bytes I received...\n", bytes_read);
-            write(cfd, in, bytes_read);
-            bytes_read = read(cfd, in, BUFSIZE);
+            printf("sending back the %d bytes I received...\n", bytesRead);
+            write(connectionFileDesc, input, bytesRead);
+            bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
         }
 
     }
