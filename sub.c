@@ -12,6 +12,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include "keyValStore.h"
 
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
@@ -74,6 +75,35 @@ int startServer() {
                 close(connectionFileDesc);
                 close(rendevouzFileDesc);
                 return 0;
+            }
+            else {
+                char * token = strtok(input, " ");
+                char * befehl = NULL;
+                char * key = NULL;
+                char * value = "";
+                while (token) {
+                    if (befehl == NULL) {
+                        befehl = token;
+                        printf("Befehl: %s\n", befehl);
+                    }
+                    else if(key == NULL){
+                        key = token;
+                        printf("Key: %s\n", key);
+                    }
+                    else if(strstr(value, "")){
+                        value = token;
+                        printf("Value: %s\n", value);
+                    }
+                    token = strtok( NULL, " " );
+                }
+                if(strstr(befehl, "GET")){
+                    get(key, value);
+                    printf("%s", value);
+                }
+                else if(strstr(befehl, "PUT")){
+                    put(key, value);
+                    printf("%s", value);
+                }
             }
 
             printf("sending back the %d bytes I received...\n", bytesRead);
