@@ -17,6 +17,27 @@
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
 
+
+// splitCommand takes a string and returns the first three words of the string (seperated by space)
+// returns three words because in its used context three key words will be needed
+int splitCommand(char string[], char * substrings[][256]) {
+    int index = 0;
+    char substring[256] = "";
+    for (int i = 0; i < strlen(string) && index < 3; i++) {
+        if (string[i] == ' ') {
+            strcpy((char *) substrings[index], (const char *) &substring);
+            strcpy(substring, "");
+            index++;
+        } else {
+            strncat(substring, &string[i], 1);
+        }
+    }
+    if (index < 3 && strlen(substring) > 0) {
+        strcpy((char *) substrings[index], (const char *) &substring);
+    }
+    return 0;
+}
+
 int startServer() {
 
     int rendevouzFileDesc; // Rendevouz-Descriptor (server socket)
@@ -70,47 +91,41 @@ int startServer() {
 
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         while (bytesRead > 0) {
+            char * substrings[3][256] = { NULL };
+            splitCommand(input, substrings);
+            char command[256] = "command";
+            strcpy(command, (const char *) substrings[0]);
+            char key[256] = "key";
+            strcpy(key, (const char *) substrings[1]);
+            char value[256] = "value";
+            strcpy(value, (const char *) substrings[2]);
             // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
-            if (strstr(input, "QUIT\0")) {
+            if (strstr(command, "PUT")) {
+                put(key, value);
+            }
+            if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
+                char temp[256] = "hi";
+                get(key, temp);
+                printf("hii %s\n", temp);
+            }
+            if (strstr(command, "DEL")) {
+                del(key);
+            }
+            if (strstr(command, "QUIT")) {
                 close(connectionFileDesc);
                 close(rendevouzFileDesc);
                 return 0;
-            }
-            else {
-                char * token = strtok(input, " ");
-                char * befehl = NULL;
-                char * key = NULL;
-                char * value = "";
-                while (token) {
-                    if (befehl == NULL) {
-                        befehl = token;
-                        printf("Befehl: %s\n", befehl);
-                    }
-                    else if(key == NULL){
-                        key = token;
-                        printf("Key: %s\n", key);
-                    }
-                    else if(strstr(value, "")){
-                        value = token;
-                        printf("Value: %s\n", value);
-                    }
-                    token = strtok( NULL, " " );
-                }
-                if(strstr(befehl, "GET")){
-                    get(key, value);
-                    printf("%s", value);
-                }
-                else if(strstr(befehl, "PUT")){
-                    put(key, value);
-                    printf("%s", value);
-                }
-            }
+            } // telnet localhost 5678
 
-            printf("sending back the %d bytes I received...\n", bytesRead);
+            //printf("sending back the %d bytes I received...\n", bytesRead);
             write(connectionFileDesc, input, bytesRead);
             bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
         }
 
     }
 
+
+
 }
+
+
