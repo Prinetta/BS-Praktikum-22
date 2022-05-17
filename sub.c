@@ -39,7 +39,6 @@ int splitCommand(char string[], char * substrings[][256]) {
 }
 
 int startServer() {
-
     int rendevouzFileDesc; // Rendevouz-Descriptor (server socket)
     int connectionFileDesc; // Verbindungs-Descriptor (client socket)
 
@@ -85,7 +84,7 @@ int startServer() {
         // Verbindung eines Clients wird entgegengenommen
         // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
-        printf("Die Client ist connected\n");
+        printf("Der Client ist connected.\n");
 
         // Lesen von Daten, die der Client schickt
         bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
@@ -104,7 +103,8 @@ int startServer() {
                 // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
                 if (strstr(command, "PUT")) {
                     put(key, value);
-                } if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
+                }
+                if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
                     char temp[256] = "hi";
                     get(key, temp);
                     printf("hii %s\n", temp);
@@ -113,12 +113,11 @@ int startServer() {
                     del(key);
                 }
                 if (strstr(command, "QUIT")) {
-
                     close(connectionFileDesc);
                     close(rendevouzFileDesc);
                     printf("Close");
                     return 0;
-                } // telnet localhost 5678
+                }
 
                 //printf("sending back the %d bytes I received...\n", bytesRead);
                 write(connectionFileDesc, input, bytesRead);
@@ -126,11 +125,7 @@ int startServer() {
             }
             close(connectionFileDesc);
         }
-
     }
-
-
-
 }
 
 
