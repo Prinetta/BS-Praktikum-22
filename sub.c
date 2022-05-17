@@ -85,41 +85,46 @@ int startServer() {
         // Verbindung eines Clients wird entgegengenommen
         // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
+        printf("Die Client ist connected\n");
 
         // Lesen von Daten, die der Client schickt
         bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
 
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
-        while (bytesRead > 0) {
-            char * substrings[3][256] = { NULL };
-            splitCommand(input, substrings);
-            char command[256] = "command";
-            strcpy(command, (const char *) substrings[0]);
-            char key[256] = "key";
-            strcpy(key, (const char *) substrings[1]);
-            char value[256] = "value";
-            strcpy(value, (const char *) substrings[2]);
-            // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
-            if (strstr(command, "PUT")) {
-                put(key, value);
-            }
-            if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
-                char temp[256] = "hi";
-                get(key, temp);
-                printf("hii %s\n", temp);
-            }
-            if (strstr(command, "DEL")) {
-                del(key);
-            }
-            if (strstr(command, "QUIT")) {
-                close(connectionFileDesc);
-                close(rendevouzFileDesc);
-                return 0;
-            } // telnet localhost 5678
+        if(fork() == 0) {
+            while (bytesRead > 0) {
+                char *substrings[3][256] = {NULL};
+                splitCommand(input, substrings);
+                char command[256] = "command";
+                strcpy(command, (const char *) substrings[0]);
+                char key[256] = "key";
+                strcpy(key, (const char *) substrings[1]);
+                char value[256] = "value";
+                strcpy(value, (const char *) substrings[2]);
+                // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
+                if (strstr(command, "PUT")) {
+                    put(key, value);
+                } if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
+                    char temp[256] = "hi";
+                    get(key, temp);
+                    printf("hii %s\n", temp);
+                }
+                if (strstr(command, "DEL")) {
+                    del(key);
+                }
+                if (strstr(command, "QUIT")) {
 
-            //printf("sending back the %d bytes I received...\n", bytesRead);
-            write(connectionFileDesc, input, bytesRead);
-            bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+                    close(connectionFileDesc);
+                    close(rendevouzFileDesc);
+                    printf("Close");
+                    return 0;
+                } // telnet localhost 5678
+
+                //printf("sending back the %d bytes I received...\n", bytesRead);
+                write(connectionFileDesc, input, bytesRead);
+                bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+            }
+            close(connectionFileDesc);
         }
 
     }
