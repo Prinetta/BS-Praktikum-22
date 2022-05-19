@@ -105,9 +105,9 @@ int startServer() {
                     put(key, value);
                 }
                 if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
-                    char temp[256] = "hi";
+                    char temp[256] = "no value";
                     get(key, temp);
-                    printf("hii %s\n", temp);
+                    printf("value: %s\n", temp);
                 }
                 if (strstr(command, "DEL")) {
                     del(key);
@@ -115,7 +115,7 @@ int startServer() {
                 if (strstr(command, "QUIT")) {
                     close(connectionFileDesc);
                     close(rendevouzFileDesc);
-                    printf("Close");
+                    printf("Client closed.\n");
                     return 0;
                 }
 
@@ -123,8 +123,8 @@ int startServer() {
                 write(connectionFileDesc, input, bytesRead);
                 bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
             }
-            close(connectionFileDesc);
         }
+        close(connectionFileDesc);
     }
 }
 
