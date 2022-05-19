@@ -59,7 +59,6 @@ int get(char * key, char * res){ // last value saved always works to get
         strcpy(res, dataArray[index]->value);
         return 0;
     }
-    res = "";
     return -1;
 }
 

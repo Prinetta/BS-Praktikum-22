@@ -100,17 +100,29 @@ int startServer() {
                 strcpy(key, (const char *) substrings[1]);
                 char value[256] = "value";
                 strcpy(value, (const char *) substrings[2]);
+
+                char * output = malloc(sizeof (char[512]));
+
                 // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
                 if (strstr(command, "PUT")) {
                     put(key, value);
+                    sprintf(output, "PUT : %s : %s", key, value);
+                    write(connectionFileDesc, output, sizeof (char[512]));
                 }
                 if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
-                    char temp[256] = "no value";
+                    char temp[256] = "key_nonexistent\n";
                     get(key, temp);
-                    printf("value: %s\n", temp);
+                    sprintf(output, "GET : %s : %s", key, temp);
+                    write(connectionFileDesc, output, sizeof (char[512]));
                 }
                 if (strstr(command, "DEL")) {
-                    del(key);
+                    char temp[256] = "key_nonexistent\n";
+                    get(key, temp);
+                    if (del(key) == 0) {
+                        strcpy(temp, "key_deleted\n");
+                    }
+                    sprintf(output, "DEL : %s : %s", key, temp);
+                    write(connectionFileDesc, output, sizeof (char[512]));
                 }
                 if (strstr(command, "QUIT")) {
                     close(connectionFileDesc);
@@ -119,8 +131,6 @@ int startServer() {
                     return 0;
                 }
 
-                //printf("sending back the %d bytes I received...\n", bytesRead);
-                write(connectionFileDesc, input, bytesRead);
                 bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
             }
         }
