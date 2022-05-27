@@ -89,6 +89,8 @@ int startServer() {
         // Lesen von Daten, die der Client schickt
         bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
 
+        initStorage();
+
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         if(fork() == 0) {
             while (bytesRead > 0) {
@@ -136,6 +138,7 @@ int startServer() {
         }
         close(connectionFileDesc);
     }
+    detachStorage();
 }
 
 
