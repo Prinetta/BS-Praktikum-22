@@ -7,6 +7,6 @@
 int get(char * key, char * res);
 int put(char * key, char * value);
 int del(char * key);
-int initStorage();
+int initDataStorage();
 int detachStorage();
 #endif //BS_PRAKTIKUM_22_KEYVALSTORE_H

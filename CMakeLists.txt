@@ -7,4 +7,11 @@ include_directories(.)
 include_directories(.idea)
 
 add_executable(BS_Praktikum_22
-        main.c keyValStore.c keyValStore.h sub.c sub.h main.h)
+        main.c
+        main.h
+        keyValStore.c
+        keyValStore.h
+        server.c
+        server.h
+        splitCommand.c
+        splitCommand.h)
