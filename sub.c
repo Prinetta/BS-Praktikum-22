@@ -17,23 +17,50 @@
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
 
+typedef struct command{
+    char command[4];
+    char key[10];
+    char value[10];
+} command;
 
-// splitCommand takes a string and returns the first three words of the string (seperated by space)
+// splitCommand takes a commandString and returns the first three words of the commandString (seperated by space)
 // returns three words because in its used context three key words will be needed
-int splitCommand(char string[], char * substrings[][256]) {
-    int index = 0;
-    char substring[256] = "";
-    for (int i = 0; i < strlen(string) && index < 3; i++) {
-        if (string[i] == ' ') {
-            strcpy((char *) substrings[index], (const char *) &substring);
-            strcpy(substring, "");
-            index++;
-        } else {
-            strncat(substring, &string[i], 1);
+int splitCommand(char commandString[], command * current) {
+    int indexOfCommandString = 0;
+    int indexOfCommand = 0;
+    char * pointer;
+    for(int i = 0; i < 3; i++) {
+        int finishedWord = 0;
+        if(i == 0){
+            pointer = current->command;
         }
-    }
-    if (index < 3 && strlen(substring) > 0) {
-        strcpy((char *) substrings[index], (const char *) &substring);
+        else if(i == 1){
+            pointer = current->key;
+        }
+        else if(i == 2){
+            pointer = current->value;
+        }
+        while (finishedWord == 0) {
+            if (commandString[indexOfCommandString] == ' ' || commandString[indexOfCommandString] == '\n'
+            || ((i == 1 &&
+                (strstr(current->command, "GET") || strstr(current->command, "DEL"))
+                && (commandString[indexOfCommandString+1] == ' ' || commandString[indexOfCommandString+1] == '\n')))) {
+                pointer[indexOfCommand] = '\0';
+                indexOfCommandString++;
+                indexOfCommand = 0;
+                finishedWord = 1;
+                if(i == 1 &&
+                (strstr(current->command, "GET") || strstr(current->command, "DEL"))){
+                    printf("loop\n");
+                    *current->value = '\0';
+                    break;
+                }
+            } else {
+                pointer[indexOfCommand] = commandString[indexOfCommandString];
+                indexOfCommandString++;
+                indexOfCommand++;
+            }
+        }
     }
     return 0;
 }
@@ -84,55 +111,63 @@ int startServer() {
         // Verbindung eines Clients wird entgegengenommen
         // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
-        printf("Der Client ist connected.\n");
 
         // Lesen von Daten, die der Client schickt
         bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
 
         initStorage();
 
+
         // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         if(fork() == 0) {
             while (bytesRead > 0) {
-                char *substrings[3][256] = {NULL};
-                splitCommand(input, substrings);
-                char command[256] = "command";
-                strcpy(command, (const char *) substrings[0]);
-                char key[256] = "key";
-                strcpy(key, (const char *) substrings[1]);
-                char value[256] = "value";
-                strcpy(value, (const char *) substrings[2]);
+                //command * commandStruct = (command * ) malloc(sizeof(command));
+                command *commandStruct;
+                commandStruct = (command *) malloc(sizeof(command));
+
+                strcpy(commandStruct->command, " ");
+                strcpy(commandStruct->key, " ");
+                strcpy(commandStruct->value, " ");
+
+                splitCommand((char **) input, commandStruct);
+
+
 
                 char * output = malloc(sizeof (char[512]));
 
+
+
                 // strcmp had inconsistencies, so strstr instead with \0 to ensure it's a seperate word
-                if (strstr(command, "PUT")) {
-                    put(key, value);
-                    sprintf(output, "PUT : %s : %s", key, value);
+                if (strstr(commandStruct->command, "PUT")) {
+                    if(put(commandStruct->key, commandStruct->value) != -1) {
+                        sprintf(output, "PUT : %s : %s\n", commandStruct->key, commandStruct->value);
+                        write(connectionFileDesc, output, sizeof(char[512]));
+                    }
+                    else{
+                        perror("put failed");
+                    }
+                }
+                if (strstr(commandStruct->command, "GET")) { // for some reason only works if u type a third word?? gotta fix
+                    char temp[256] = "key_nonexistent\n";
+                    get(commandStruct->key, temp);
+                    sprintf(output, "GET : %s : %s\n", commandStruct->key, temp);
                     write(connectionFileDesc, output, sizeof (char[512]));
                 }
-                if (strstr(command, "GET")) { // for some reason only works if u type a third word?? gotta fix
+                if (strstr(commandStruct->command, "DEL")) {
                     char temp[256] = "key_nonexistent\n";
-                    get(key, temp);
-                    sprintf(output, "GET : %s : %s", key, temp);
-                    write(connectionFileDesc, output, sizeof (char[512]));
-                }
-                if (strstr(command, "DEL")) {
-                    char temp[256] = "key_nonexistent\n";
-                    get(key, temp);
-                    if (del(key) == 0) {
+                    get(commandStruct->key, temp);
+                    if (del(commandStruct->key) == 0) {
                         strcpy(temp, "key_deleted\n");
                     }
-                    sprintf(output, "DEL : %s : %s", key, temp);
+                    sprintf(output, "DEL : %s : %s\n", commandStruct->key, temp);
                     write(connectionFileDesc, output, sizeof (char[512]));
                 }
-                if (strstr(command, "QUIT")) {
+                if (strstr(commandStruct->command, "QUIT")) {
                     close(connectionFileDesc);
                     close(rendevouzFileDesc);
                     printf("Client closed.\n");
                     return 0;
                 }
-
                 bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
             }
         }

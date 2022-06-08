@@ -13,16 +13,23 @@ typedef struct data{
     char value[10];
 } data;
 
-typedef struct dataList {
-    data * list[100];
-} dataList;
+data * dataArray[100];
 
 int storageId;
-dataList * dataArray;
 
 int initStorage() {
-    storageId = shmget(IPC_PRIVATE, sizeof (dataList), IPC_CREAT|0600);
-    dataArray = (dataList *) shmat(storageId, 0, 0);
+    * dataArray = (data *) malloc(100 * sizeof(data));
+    storageId = shmget(IPC_PRIVATE, sizeof (dataArray), IPC_CREAT|0600);
+    if(storageId == -1){
+        perror("shmget failed");
+        return -1;
+    }
+
+    * dataArray = shmat(storageId, 0, 0);
+    if(dataArray == (void * ) -1){
+        perror("shmat failed");
+        return -1;
+    }
     return 0;
 }
 
@@ -40,7 +47,7 @@ int detachStorage() {
 
 int indexOf(char * key) {
     for (int i = 0; i < 100; i++) {
-        if (dataArray->list[i] != NULL && strcmp (dataArray->list[i]->key, key) == 0) {
+        if (dataArray[i] != NULL && strcmp (dataArray[i]->key, key) == 0) {
             return i;
         }
     }
@@ -49,7 +56,7 @@ int indexOf(char * key) {
 
 int nextEmptyIndex() {
     for (int i = 0; i < 100; i++) {
-        if (dataArray->list[i] == NULL) {
+        if (dataArray[i] == NULL) {
             return i;
         }
     }
@@ -67,10 +74,14 @@ int put(char * key, char * value) {
     if (next == -1) {
         return -1;
     } else {
+        int size = sizeof(key);
         data * new = (data *) malloc(sizeof (data));
         strcpy(new->key, key);
         strcpy(new->value, value);
-        dataArray->list[next] = new;
+        new->key[size-1] = '\0';
+        new->value[size-1] = '\0';
+        dataArray[next] = new;
+        //free(new);
     }
 
     return 0;
@@ -79,7 +90,7 @@ int put(char * key, char * value) {
 int get(char * key, char * res){
     int index = indexOf(key);
     if (index >= 0) {
-        strcpy(res, dataArray->list[index]->value);
+        strcpy(res, dataArray[index]->value);
         return 0;
     }
     return -1;
@@ -88,7 +99,7 @@ int get(char * key, char * res){
 int del(char * key) {
     int index = indexOf(key);
     if (index >= 0) {
-        dataArray->list[index] = NULL;
+        dataArray[index] = NULL;
         return 0;
     }
     return -1;
