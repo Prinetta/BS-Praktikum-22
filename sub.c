@@ -81,7 +81,22 @@ int nextEmptySubIndex() {
     return -1;
 }
 
+int checkIfSubExist(char * key, int pid){
+    for (int i = 0; i < DATA_ARRAY_SIZE; ++i) {
+        if (strcmp(subsArray[i].key, key) == 0 &&
+                subsArray[i].pid == pid) {
+            return 1;
+        }
+    }
+    return 0;
+}
+
 int sub(int pid, char * key, char * value){
+    if(checkIfSubExist(key, pid) == 1){
+        printf("Subscription already exists");
+        fflush(stdout);
+        return 0;
+    }
     int index = nextEmptySubIndex();
     if (index != -1) {
         subsArray[index] = (Sub) {};
