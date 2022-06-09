@@ -17,7 +17,7 @@ char** splitCommand(char * string) { // works with space at end of command
     int length = strlen(string);
 
     for (int i = 0; i < length && strcmp(substrings[2], "-1") == 0; ++i) {
-        if (string[i] == ' ') {
+        if (string[i] < 33 || string[i] > 126) {
             strcpy(substrings[index], substring);
             memset(substring, 0, strlen(substring));
             index++;
