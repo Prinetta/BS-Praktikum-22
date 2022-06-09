@@ -68,6 +68,7 @@ int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], in
                     strcpy(temp, "key_deleted");
                 }
                 sprintf(output, "DEL : %s : %s\n", key, temp);
+                checkNotify(key, output);
                 write(connectionFileDesc, output, strlen(output));
             }
             if (strcmp(command, "SUB") == 0) {
@@ -101,12 +102,7 @@ int subReader(int connectionFileDesc) {
         while (1) {
             int receive = msgrcv(msg_id, &message, sizeof(char[256]), 0, 0);
             if (receive >= 0) {
-                printf("getting: %i\n", msg_id);
-                fflush(stdout);
                 write(connectionFileDesc, message.text, strlen(message.text));
-            } else {
-                printf("msg receive failed %i\n", errno);
-                fflush(stdout);
             }
         }
     }

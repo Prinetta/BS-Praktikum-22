@@ -15,7 +15,7 @@
 #define DATA_ARRAY_BYTES sizeof(Sub [DATA_ARRAY_SIZE])
 #define DEFAULT_KEY "no_key"
 #define DEFAULT_VALUE -1
-#define DEFAULT_DATA (Sub) { .key = DEFAULT_KEY, .pid = DEFAULT_VALUE }
+#define DEFAULT_DATA (Sub) { .key = DEFAULT_KEY, .pid = 1 }
 
 typedef struct Sub {
     char key[10];
@@ -23,8 +23,8 @@ typedef struct Sub {
 } Sub;
 
 typedef struct Message{
-    int type;
-    char text[100];
+    long type;
+    char text[256];
 } Message;
 
 Sub * subsArray;
@@ -100,14 +100,13 @@ int notify(int pid, char * string){
     Message message = (Message) {};
     message.type = pid;
     strcpy(message.text, string);
-    printf("Message Type: %d\n", message.type);
+    printf("Message Type: %ld\n", message.type);
     printf("Message Text: %s\n", message.text);
-    int send = msgsnd(msg_id, &message, sizeof(char[256]), 0);
+    int send = msgsnd(msg_id, &message, sizeof(char) * 256, 0);
+    fflush(stdout);
     if (send < 0) {
         return -1;
     }
-    printf("sending: %i\n", msg_id);
-    fflush(stdout);
     return 0;
 }
 
@@ -119,17 +118,4 @@ int checkNotify(char * key, char * string){
     }
     return 0;
     //bei delete müssen alle dingens mit key gelöscht werden
-}
-
-void checkSub(int pid, int connectionFileDesc) {
-    for (int i = 0; i < DATA_ARRAY_SIZE; ++i) {
-        if (subsArray[i].pid == pid) {
-            char output[256];
-            char temp[64];
-            get(subsArray[i].key, temp);
-            sprintf(output, "PUT : %s : %s", subsArray[i].key, temp);
-            write(connectionFileDesc, output, strlen(output));
-            subsArray[i] = DEFAULT_DATA;
-        }
-    }
 }
