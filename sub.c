@@ -103,7 +103,6 @@ int sub(int pid, char * key, char * value){
         subsArray[index].pid = pid;
         strcpy(subsArray[index].key, key);
         get(key, value);
-        printSubArray();
         return 0;
     }
 
@@ -115,8 +114,6 @@ int notify(int pid, char * string){
     Message message = (Message) {};
     message.type = pid;
     strcpy(message.text, string);
-    printf("Message Type: %ld\n", message.type);
-    printf("Message Text: %s\n", message.text);
     int send = msgsnd(msg_id, &message, sizeof(char) * 256, 0);
     fflush(stdout);
     if (send < 0) {
@@ -132,10 +129,8 @@ int checkNotify(char * key, char * string){
             char temp[64];
             if (get(key, temp) == -1) {
                 subsArray[i] = DEFAULT_DATA;
-                printSubArray();
             }
         }
     }
     return 0;
-    //bei delete müssen alle dingens mit key gelöscht werden
 }

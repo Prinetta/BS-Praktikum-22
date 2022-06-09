@@ -97,7 +97,6 @@ int subReader(int connectionFileDesc) {
     if (pid == 0) {
         int msg_id = msgget((key_t) MSG_KEY, 0);
         Message message;
-        printSubArray();
         printf("Listening on %i\n", getpid());
         while (1) {
             int receive = msgrcv(msg_id, &message, sizeof(char[256]), getpid(), 0);
@@ -158,7 +157,6 @@ int startServer() {
 
     while (1) { // works with space at end of command
         // Verbindung eines Clients wird entgegengenommen
-        // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
 
         if(fork() == 0) {
