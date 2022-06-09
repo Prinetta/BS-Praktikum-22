@@ -4,5 +4,6 @@
 
 #ifndef BS_PRAKTIKUM_22_SERVER_H
 #define BS_PRAKTIKUM_22_SERVER_H
+#define MSG_KEY 69
 int startServer();
 #endif //BS_PRAKTIKUM_22_SERVER_H

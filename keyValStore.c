@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <sys/shm.h>
+#include "sub.h"
 
 #define DATA_ARRAY_SIZE 100
 #define DATA_ARRAY_BYTES sizeof(Data[DATA_ARRAY_SIZE])
@@ -82,6 +83,7 @@ int put(char * key, char * value) {
     int index = indexOf(key);
     if (index != -1) {
         strcpy(dataArray[index].value, value);
+        checkNotify(key);
         return 0;
     }
 
@@ -110,6 +112,7 @@ int del(char * key) {
     int index = indexOf(key);
     if (index != -1) {
         dataArray[index] = DEFAULT_DATA;
+        checkNotify(key);
         return 0;
     }
     return -1;

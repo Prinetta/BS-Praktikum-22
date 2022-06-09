@@ -11,6 +11,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <string.h>
+#include <sys/msg.h>
 #include "keyValStore.h"
 #include "splitCommand.h"
 #include "semaphore.h"
@@ -18,10 +19,11 @@
 
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
+#define MSG_KEY 69
 
 int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], int bytesRead) {
     while (bytesRead > 0) {
-        printf("loop\n");
+        //printf("loop\n");
         fflush(stdout);
         char** substrings = splitCommand(input);
         char * command = substrings[0];
@@ -68,7 +70,7 @@ int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], in
         }
         if(strcmp(command, "SUB") == 0){
                     char temp[64];
-                    int pid = getpid();
+                    int pid = getppid();
                     if (sub(pid, key, temp) == -1) {
                         strcpy(temp, "key_nonexistent");
                     }
@@ -138,16 +140,49 @@ int startServer() {
         // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
 
-        // Lesen von Daten, die der Client schickt
-        bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+        int msid = msgget((key_t) MSG_KEY, IPC_CREAT|0666);
 
-        // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
         if(fork() == 0) {
-            initSemaphore();
-            return handleInputs(connectionFileDesc, rendevouzFileDesc, input, bytesRead);
+            // Lesen von Daten, die der Client schickt
+            //bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+            //printf("1. fork PID: %d\n", getpid());
+            //printf("1. fork parents pid: %d\n", getppid());
+
+            // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
+            if (fork() == 0) {
+                bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+                initSemaphore();
+                return handleInputs(connectionFileDesc, rendevouzFileDesc, input, bytesRead);
+            }
+            else{
+                printf(">> Checkpoint 1\n");
+                char * pointer = malloc(sizeof(Message));
+                printf(">> Checkpoint 2\n");
+                int msidnew = msgget(MSG_KEY, 0);
+                printf(">> Checkpoint 2.5\n");
+                if (msidnew == -1) {
+                    printf(">> Checkpoint 3\n");
+                    printf("cannot get message queue\n");
+                }
+                printf(">> Checkpoint 4\n");
+                int receive = msgrcv(msidnew, pointer, sizeof(Message), getpid(), 0);
+                printf(">> Checkpoint 5\n");
+                if (receive > 0) {
+                    printf(">> Checkpoint 6\n");
+                    printf("message found");
+                    printf(">> Checkpoint 7\n");
+                    write(connectionFileDesc, pointer, sizeof(pointer));
+                    printf(">> Checkpoint 8\n");
+                } else {
+                    printf(">> Checkpoint 9\n");
+                    printf("no message");
+                }
+                printf(">> Checkpoint 10\n");
+            }
+            close(connectionFileDesc);
         }
-        close(connectionFileDesc);
     }
+    detachSubStorage();
     detachSemaphore();
     detachStorage();
 }

@@ -5,7 +5,9 @@
 #include <stdio.h>
 #include <sys/shm.h>
 #include <string.h>
+#include <sys/msg.h>
 #include "keyValStore.h"
+#include "server.h"
 
 #define DATA_ARRAY_SIZE 100
 #define DATA_ARRAY_BYTES sizeof(Sub [DATA_ARRAY_SIZE])
@@ -17,6 +19,11 @@ typedef struct Sub {
     char key[10];
     int pid;
 } Sub;
+
+typedef struct Message{
+    int type;
+    char text[100];
+} Message;
 
 Sub * subsArray;
 int storageId;
@@ -93,7 +100,26 @@ int sub(int pid, char * key, char * value){
     return -1;
 }
 
-int notify(int pid, char * value){
-    //Schickt Nachricht über Nachrichtenwarteschlange
-    //nutzen pid
+int notify(int pid){
+    int msid = msgget(MSG_KEY, 0);
+    if(msid == -1){
+        printf("cannot get message queue\n");
+    }
+    Message message = (Message){pid, "TEST TEST TEST"};
+    printf("Message Type: %d\n", message.type);
+    int send = msgsnd(msid, &message, sizeof(message), 0);
+    if(send < 0){
+        printf("error writing to queue\n");
+        printf("status: %d\n", send);
+    }
+    printf("message sent to: %d", pid);
+}
+
+int checkNotify(char * key){
+    for(int i = 0; i < DATA_ARRAY_SIZE; ++i){
+        if(strcmp(subsArray[i].key, key) == 0){
+            notify(subsArray[i].pid);
+        }
+    }
+    //bei delete müssen alle dingens mit key gelöscht werden
 }
