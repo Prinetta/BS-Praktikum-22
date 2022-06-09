@@ -33,14 +33,12 @@ int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], in
             char *output = malloc(sizeof(char[256]));
 
             if (strcmp(command, "BEG") == 0) {
-                printf("BEG\n");
                 fflush(stdout);
                 enterCriticalArea();
                 strcpy(output, "Alleiniger Zugriff aktiviert.\n");
                 write(connectionFileDesc, output, strlen(output));
             }
             if (strcmp(command, "END") == 0) {
-                printf("END\n");
                 fflush(stdout);
                 leaveCriticalArea();
                 strcpy(output, "Zugriff freigegeben.\n");
@@ -97,7 +95,6 @@ int subReader(int connectionFileDesc) {
     if (pid == 0) {
         int msg_id = msgget((key_t) MSG_KEY, 0);
         Message message;
-        printf("Listening on %i\n", getpid());
         while (1) {
             int receive = msgrcv(msg_id, &message, sizeof(char[256]), getpid(), 0);
             if (receive >= 0) {
