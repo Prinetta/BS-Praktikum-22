@@ -100,7 +100,7 @@ int subReader(int connectionFileDesc) {
         printSubArray();
         printf("Listening on %i\n", getpid());
         while (1) {
-            int receive = msgrcv(msg_id, &message, sizeof(char[256]), 0, 0);
+            int receive = msgrcv(msg_id, &message, sizeof(char[256]), getpid(), 0);
             if (receive >= 0) {
                 write(connectionFileDesc, message.text, strlen(message.text));
             }

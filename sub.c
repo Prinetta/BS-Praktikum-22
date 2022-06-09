@@ -15,7 +15,7 @@
 #define DATA_ARRAY_BYTES sizeof(Sub [DATA_ARRAY_SIZE])
 #define DEFAULT_KEY "no_key"
 #define DEFAULT_VALUE -1
-#define DEFAULT_DATA (Sub) { .key = DEFAULT_KEY, .pid = 1 }
+#define DEFAULT_DATA (Sub) { .key = DEFAULT_KEY, .pid = -1 }
 
 typedef struct Sub {
     char key[10];
@@ -114,6 +114,11 @@ int checkNotify(char * key, char * string){
     for (int i = 0; i < DATA_ARRAY_SIZE; ++i) {
         if (strcmp(subsArray[i].key, key) == 0) {
             notify(subsArray[i].pid, string);
+            char temp[64];
+            if (get(key, temp) == -1) {
+                subsArray[i] = DEFAULT_DATA;
+                printSubArray();
+            }
         }
     }
     return 0;
