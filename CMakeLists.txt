@@ -16,4 +16,7 @@ add_executable(BS_Praktikum_22
         splitCommand.c
         splitCommand.h
         semaphore.c
-        semaphore.h)
+        semaphore.h
+        splitCommand.h
+        sub.c
+        sub.h)

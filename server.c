@@ -14,6 +14,7 @@
 #include "keyValStore.h"
 #include "splitCommand.h"
 #include "semaphore.h"
+#include "sub.h"
 
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
@@ -65,6 +66,15 @@ int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], in
             sprintf(output, "DEL : %s : %s\n", key, temp);
             write(connectionFileDesc, output, strlen(output));
         }
+        if(strcmp(command, "SUB") == 0){
+                    char temp[64];
+                    int pid = getpid();
+                    if (sub(pid, key, temp) == -1) {
+                        strcpy(temp, "key_nonexistent");
+                    }
+                    sprintf(output, "SUB : %s : %s\n", key, temp);
+                    write(connectionFileDesc, output, strlen(output));
+                }
         if (strcmp(command, "QUIT") == 0) {
             close(connectionFileDesc);
             close(rendevouzFileDesc);
@@ -121,6 +131,7 @@ int startServer() {
 
     createSemaphore();
     initDataStorage();
+    initSubStorage();
 
     while (1) { // works with space at end of command
         // Verbindung eines Clients wird entgegengenommen
