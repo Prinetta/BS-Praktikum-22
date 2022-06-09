@@ -6,6 +6,7 @@
 #define BS_PRAKTIKUM_22_SEMAPHORE_H
 void createSemaphore();
 void initSemaphore();
+int hasAccess();
 void detachSemaphore();
 void enterCriticalArea();
 void leaveCriticalArea();

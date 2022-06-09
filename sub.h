@@ -8,11 +8,13 @@
 #endif //BS_PRAKTIKUM_22_SUB_H
 
 typedef struct Message{
-    int type;
-    char text[100];
+    long type;
+    char text[256];
 } Message;
 
-int sub();
+void checkSub(int pid, int connectionFileDesc);
+int sub(int pid, char * key, char * value);
+void printSubArray();
 int initSubStorage();
 int detachSubStorage();
-int checkNotify();
+int checkNotify(char * key, char * string);

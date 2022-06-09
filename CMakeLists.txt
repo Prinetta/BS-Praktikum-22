@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(.)
 include_directories(.idea)
 
+
 add_executable(BS_Praktikum_22
         main.c
         main.h

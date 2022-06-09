@@ -12,81 +12,105 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <sys/msg.h>
+#include <errno.h>
 #include "keyValStore.h"
 #include "splitCommand.h"
 #include "semaphore.h"
 #include "sub.h"
+#include "server.h"
 
 #define BUFFERSIZE 1024 // Größe des Buffers
 #define PORT 5678
-#define MSG_KEY 69
 
-int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], int bytesRead) {
+
+int handleInputs(int connectionFileDesc, int rendevouzFileDesc, char input[], int bytesRead, int pid) {
     while (bytesRead > 0) {
-        //printf("loop\n");
-        fflush(stdout);
-        char** substrings = splitCommand(input);
-        char * command = substrings[0];
-        char * key = substrings[1];
-        char * value = substrings[2];
-        char * output = malloc(sizeof(char[256]));
+        if (hasAccess() > 0) {
+            char **substrings = splitCommand(input);
+            char *command = substrings[0];
+            char *key = substrings[1];
+            char *value = substrings[2];
+            char *output = malloc(sizeof(char[256]));
 
-        if (strcmp(command, "BEG") == 0) {
-            printf("BEG\n");
-            fflush(stdout);
-            enterCriticalArea();
-            strcpy(output, "Alleiniger Zugriff aktiviert.\n");
-            write(connectionFileDesc, output, strlen(output));
-        }
-        if (strcmp(command, "END") == 0) {
-            printf("END\n");
-            fflush(stdout);
-            leaveCriticalArea();
-            strcpy(output, "Zugriff freigegeben.\n");
-            write(connectionFileDesc, output, strlen(output));
-        }
-        if (strcmp(command, "PUT") == 0) {
-            if(put(key, value) == 0) {
-                sprintf(output, "PUT : %s : %s\n", key, value);
+            if (strcmp(command, "BEG") == 0) {
+                printf("BEG\n");
+                fflush(stdout);
+                enterCriticalArea();
+                strcpy(output, "Alleiniger Zugriff aktiviert.\n");
                 write(connectionFileDesc, output, strlen(output));
             }
-        }
-        if (strcmp(command, "GET") == 0) {
-            char temp[64];
-            if (get(key, temp) == -1) {
-                strcpy(temp, "key_nonexistent");
+            if (strcmp(command, "END") == 0) {
+                printf("END\n");
+                fflush(stdout);
+                leaveCriticalArea();
+                strcpy(output, "Zugriff freigegeben.\n");
+                write(connectionFileDesc, output, strlen(output));
             }
-            sprintf(output, "GET : %s : %s\n", key, temp);
-            write(connectionFileDesc, output, strlen(output));
-        }
-        if (strcmp(command, "DEL") == 0) {
-            char temp[64];
-            get(key, temp);
-            if (del(key) == 0) {
-                strcpy(temp, "key_deleted");
-            }
-            sprintf(output, "DEL : %s : %s\n", key, temp);
-            write(connectionFileDesc, output, strlen(output));
-        }
-        if(strcmp(command, "SUB") == 0){
-                    char temp[64];
-                    int pid = getppid();
-                    if (sub(pid, key, temp) == -1) {
-                        strcpy(temp, "key_nonexistent");
-                    }
-                    sprintf(output, "SUB : %s : %s\n", key, temp);
+            if (strcmp(command, "PUT") == 0) {
+                if (put(key, value) == 0) {
+                    sprintf(output, "PUT : %s : %s\n", key, value);
                     write(connectionFileDesc, output, strlen(output));
+                    checkNotify(key, output);
                 }
-        if (strcmp(command, "QUIT") == 0) {
-            close(connectionFileDesc);
-            close(rendevouzFileDesc);
-            printf("Client closed.\n");
-            fflush(stdout);
-            return 0;
+            }
+            if (strcmp(command, "GET") == 0) {
+                char temp[64];
+                if (get(key, temp) == -1) {
+                    strcpy(temp, "key_nonexistent");
+                }
+                sprintf(output, "GET : %s : %s\n", key, temp);
+                write(connectionFileDesc, output, strlen(output));
+            }
+            if (strcmp(command, "DEL") == 0) {
+                char temp[64];
+                get(key, temp);
+                if (del(key) == 0) {
+                    strcpy(temp, "key_deleted");
+                }
+                sprintf(output, "DEL : %s : %s\n", key, temp);
+                write(connectionFileDesc, output, strlen(output));
+            }
+            if (strcmp(command, "SUB") == 0) {
+                char temp[64];
+                if (sub(pid, key, temp) == -1) {
+                    strcpy(temp, "key_nonexistent");
+                }
+                sprintf(output, "SUB : %s : %s\n", key, temp);
+                write(connectionFileDesc, output, strlen(output));
+            }
+            if (strcmp(command, "QUIT") == 0) {
+                close(connectionFileDesc);
+                close(rendevouzFileDesc);
+                printf("Client closed.\n");
+                fflush(stdout);
+                return 0;
+            }
         }
         bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
     }
     return 0;
+}
+
+int subReader(int connectionFileDesc) {
+    int pid = fork();
+    if (pid == 0) {
+        int msg_id = msgget((key_t) MSG_KEY, 0);
+        Message message;
+        printSubArray();
+        printf("Listening on %i\n", getpid());
+        while (1) {
+            int receive = msgrcv(msg_id, &message, sizeof(char[256]), 0, 0);
+            if (receive >= 0) {
+                printf("getting: %i\n", msg_id);
+                fflush(stdout);
+                write(connectionFileDesc, message.text, strlen(message.text));
+            } else {
+                printf("msg receive failed %i\n", errno);
+                fflush(stdout);
+            }
+        }
+    }
+    return pid;
 }
 
 int startServer() {
@@ -134,51 +158,20 @@ int startServer() {
     createSemaphore();
     initDataStorage();
     initSubStorage();
+    int msg_id = msgget((key_t) MSG_KEY, IPC_CREAT | 0666);
 
     while (1) { // works with space at end of command
         // Verbindung eines Clients wird entgegengenommen
         // (awaits connection to rendevouzFileDesc, opens new socket to communicate with it and saves client address)
         connectionFileDesc = accept(rendevouzFileDesc, (struct sockaddr *) &client, &clientLength);
 
-        int msid = msgget((key_t) MSG_KEY, IPC_CREAT|0666);
-
         if(fork() == 0) {
-            // Lesen von Daten, die der Client schickt
-            //bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
-            //printf("1. fork PID: %d\n", getpid());
-            //printf("1. fork parents pid: %d\n", getppid());
+            int pid = subReader(connectionFileDesc);
 
             // Zurückschicken der Daten, solange der Client welche schickt (und kein Fehler passiert)
-            if (fork() == 0) {
-                bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
-                initSemaphore();
-                return handleInputs(connectionFileDesc, rendevouzFileDesc, input, bytesRead);
-            }
-            else{
-                printf(">> Checkpoint 1\n");
-                char * pointer = malloc(sizeof(Message));
-                printf(">> Checkpoint 2\n");
-                int msidnew = msgget(MSG_KEY, 0);
-                printf(">> Checkpoint 2.5\n");
-                if (msidnew == -1) {
-                    printf(">> Checkpoint 3\n");
-                    printf("cannot get message queue\n");
-                }
-                printf(">> Checkpoint 4\n");
-                int receive = msgrcv(msidnew, pointer, sizeof(Message), getpid(), 0);
-                printf(">> Checkpoint 5\n");
-                if (receive > 0) {
-                    printf(">> Checkpoint 6\n");
-                    printf("message found");
-                    printf(">> Checkpoint 7\n");
-                    write(connectionFileDesc, pointer, sizeof(pointer));
-                    printf(">> Checkpoint 8\n");
-                } else {
-                    printf(">> Checkpoint 9\n");
-                    printf("no message");
-                }
-                printf(">> Checkpoint 10\n");
-            }
+            bytesRead = read(connectionFileDesc, input, BUFFERSIZE);
+            initSemaphore();
+            return handleInputs(connectionFileDesc, rendevouzFileDesc, input, bytesRead, pid);
             close(connectionFileDesc);
         }
     }

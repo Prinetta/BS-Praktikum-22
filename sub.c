@@ -6,6 +6,8 @@
 #include <sys/shm.h>
 #include <string.h>
 #include <sys/msg.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include "keyValStore.h"
 #include "server.h"
 
@@ -80,19 +82,12 @@ int nextEmptySubIndex() {
 }
 
 int sub(int pid, char * key, char * value){
-    char temp[64];
-    if(get(key, temp) != 0){
-        return -1;
-    }
-
-    strcpy(value, temp);
-
-
     int index = nextEmptySubIndex();
     if (index != -1) {
         subsArray[index] = (Sub) {};
-        strcpy(subsArray[index].key, key);
         subsArray[index].pid = pid;
+        strcpy(subsArray[index].key, key);
+        get(key, value);
         printSubArray();
         return 0;
     }
@@ -100,26 +95,41 @@ int sub(int pid, char * key, char * value){
     return -1;
 }
 
-int notify(int pid){
-    int msid = msgget(MSG_KEY, 0);
-    if(msid == -1){
-        printf("cannot get message queue\n");
-    }
-    Message message = (Message){pid, "TEST TEST TEST"};
+int notify(int pid, char * string){
+    int msg_id = msgget((key_t) MSG_KEY, 0);
+    Message message = (Message) {};
+    message.type = pid;
+    strcpy(message.text, string);
     printf("Message Type: %d\n", message.type);
-    int send = msgsnd(msid, &message, sizeof(message), 0);
-    if(send < 0){
-        printf("error writing to queue\n");
-        printf("status: %d\n", send);
+    printf("Message Text: %s\n", message.text);
+    int send = msgsnd(msg_id, &message, sizeof(char[256]), 0);
+    if (send < 0) {
+        return -1;
     }
-    printf("message sent to: %d", pid);
+    printf("sending: %i\n", msg_id);
+    fflush(stdout);
+    return 0;
 }
 
-int checkNotify(char * key){
-    for(int i = 0; i < DATA_ARRAY_SIZE; ++i){
-        if(strcmp(subsArray[i].key, key) == 0){
-            notify(subsArray[i].pid);
+int checkNotify(char * key, char * string){
+    for (int i = 0; i < DATA_ARRAY_SIZE; ++i) {
+        if (strcmp(subsArray[i].key, key) == 0) {
+            notify(subsArray[i].pid, string);
         }
     }
+    return 0;
     //bei delete müssen alle dingens mit key gelöscht werden
+}
+
+void checkSub(int pid, int connectionFileDesc) {
+    for (int i = 0; i < DATA_ARRAY_SIZE; ++i) {
+        if (subsArray[i].pid == pid) {
+            char output[256];
+            char temp[64];
+            get(subsArray[i].key, temp);
+            sprintf(output, "PUT : %s : %s", subsArray[i].key, temp);
+            write(connectionFileDesc, output, strlen(output));
+            subsArray[i] = DEFAULT_DATA;
+        }
+    }
 }
